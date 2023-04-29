@@ -133,6 +133,7 @@ GameObject:
   m_Component:
   - component: {fileID: 459311523}
   - component: {fileID: 459311522}
+  - component: {fileID: 459311524}
   m_Layer: 0
   m_Name: Ant
   m_TagString: Untagged
@@ -170,6 +171,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &459311524
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459311521}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 1.68
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -264,7 +281,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1159696392}
   - component: {fileID: 1159696391}
-  - component: {fileID: 1159696394}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -340,22 +356,6 @@ Transform:
   m_Father: {fileID: 459311523}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
---- !u!70 &1159696394
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1159696390}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1.0000002, y: 2.0000005}
-  m_Direction: 0
 --- !u!1 &2066110180
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,3 +440,60 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1001 &2445560938674992150
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7948887151951006495, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_Name
+      value: Food
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.2943367
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.53217024
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8721559135495152645, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
