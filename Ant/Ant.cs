@@ -6,26 +6,27 @@ using UnityEngine.UIElements;
 public class Ant : MonoBehaviour
 {
     public float MaxSpeed;
-    public float MaxSteerPower;
-    public float SteerPower;
     public float Speed;
     Vector2 Velocity;
-    Vector2 Position;
 
     void Start()
     {
     }
 
-    // Update is called once per frame
     void Update()
     {
-        var target = Camera.main.ScreenToWorldPoint(Input.mousePosition); 
-        var Acceleration = (Vector2)(target - transform.position).normalized * (Speed * Time.deltaTime);
-        Acceleration = Vector2.ClampMagnitude(Acceleration * SteerPower, MaxSteerPower);
-        Velocity += Acceleration;
-        Vector2.ClampMagnitude(Velocity, MaxSpeed);
-        Position += Velocity * Time.deltaTime;
+        var target = (Vector2)Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        var acc = target - (Vector2)transform.position;
 
-        transform.SetPositionAndRotation(Position, Quaternion.Euler(0, 0, 0));
+        acc = acc.normalized * Speed;
+
+        Velocity += acc * Time.deltaTime;
+        Velocity = Vector2.ClampMagnitude(Velocity, MaxSpeed);
+        var angle = Mathf.Atan2(Velocity.y, Velocity.x);
+        Debug.Log(angle);
+
+        var position = transform.position + ((Vector3)Velocity * Time.deltaTime);
+        transform.position = position;
+        transform.rotation = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg);
     }
 }
