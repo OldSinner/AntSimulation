@@ -5,12 +5,14 @@ using UnityEngine;
 public class Pheromone : MonoBehaviour
 {
     public PheromoneType type;
+    public Helper helper;
     float Strength;
     SpriteRenderer spriteRenderer;
     void Start()
     {
+        helper = GameObject.Find("Helper").GetComponent<Helper>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        Strength = 20;
+        Strength = 100;
         if(type == PheromoneType.ToFood)
         {
             spriteRenderer.color = new Color(255, 0, 0, 20);
@@ -31,26 +33,28 @@ public class Pheromone : MonoBehaviour
 
     void ColorPheromone()
     {
-        spriteRenderer.color = new Color(spriteRenderer.color.r, 0, spriteRenderer.color.b, Strength > 0 ? Strength / 255 : 0); 
+        float alpha = 0;
+        if (Strength > 255) alpha = 1;
+        else if (Strength <= 0) alpha = 0;
+        else alpha = Strength / 255;
+        spriteRenderer.color = new Color(spriteRenderer.color.r, 0, spriteRenderer.color.b, alpha); 
     }
     void ClearStrength()
     {
-        Strength -= 0.5f * Time.deltaTime;
+        Strength -= 4 * Time.deltaTime;
     }
     void ValidateStrength()
     {
         if (Strength <= 0)
-        { 
+        {
+            helper.PheromoneCounter--;
             Destroy(gameObject);
         }
     }
 
     public void AddStrength()
     {
-        Strength += 10;
-        if(Strength > 255)
-        {
-            Strength = 255;
-        }
+        Strength += 20;
+        
     }
 }

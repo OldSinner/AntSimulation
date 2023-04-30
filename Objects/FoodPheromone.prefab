@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 3865512734552820523}
   - component: {fileID: 7258914877099135559}
   - component: {fileID: 975258890364329474}
+  - component: {fileID: 8120141391236628083}
   m_Layer: 0
   m_Name: FoodPheromone
-  m_TagString: Untagged
+  m_TagString: Pheromone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -98,3 +99,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   type: 1
+--- !u!58 &8120141391236628083
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9016794464854789211}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 0.5

@@ -11,15 +11,17 @@ public class Ant : MonoBehaviour
 
     public GameObject HomePheromone;
     public GameObject FoodPheromone;
+    public Helper helper;
 
+    public Vector2 ActualTarget;
+    public bool GotTarget;
 
     //Private
     Vector2 Velocity;
-    Vector2 ActualTarget;
-    bool GotTarget;
     bool IsTargetFood;
     bool IsHaveFood;
     GameObject FoodHead;
+    GameObject Food;
     DateTime LastPheromoneSpawn = DateTime.MinValue;
 
     //Const
@@ -28,6 +30,7 @@ public class Ant : MonoBehaviour
     private void Start()
     {
         FoodHead = transform.GetChild(1).gameObject;
+        helper = GameObject.Find("Helper").GetComponent<Helper>();
     }
     void Update()
     {
@@ -39,7 +42,7 @@ public class Ant : MonoBehaviour
 
     private void CreatePheromone()
     {
-        if (DateTime.Now.AddSeconds(-1) > LastPheromoneSpawn)
+        if (DateTime.Now.AddMilliseconds(-500) > LastPheromoneSpawn)
         {
             if (IsHaveFood)
             {
@@ -50,6 +53,7 @@ public class Ant : MonoBehaviour
                 Instantiate(HomePheromone, transform.position, Quaternion.Euler(0, 0, 0));
             }
             LastPheromoneSpawn = DateTime.Now;
+            helper.PheromoneCounter++;
         }
     }
 
@@ -82,6 +86,10 @@ public class Ant : MonoBehaviour
 
     private void FindTarget()
     {
+        if (IsTargetFood && Food == null)
+        {
+            GotTarget = false;
+        }
         if (Vector2.Distance(transform.position, ActualTarget) < WARDEN_DISTANT_THRESHOLD && !IsTargetFood)
         {
             GotTarget = false;
@@ -92,23 +100,23 @@ public class Ant : MonoBehaviour
 
             ActualTarget = ((Vector2)transform.position + UnityEngine.Random.insideUnitCircle * WanderStrength);
             IsTargetFood = false;
-            Debug.Log(ActualTarget);
             GotTarget = true;
 
         }
 
-        if (!IsTargetFood)
+        if (!IsTargetFood && !IsHaveFood)
         {
             var food = FindFood();
-            if (food != Vector2.zero)
+            if (food != null)
             {
-                ActualTarget = food;
+                ActualTarget = food.transform.position;
                 IsTargetFood = true;
+                Food = food;
             }
         }
     }
 
-    public Vector2 FindFood()
+    public GameObject? FindFood()
     {
         Collider2D[] buffer = new Collider2D[10];
         Physics2D.OverlapCircleNonAlloc(transform.position, 10, buffer);
@@ -124,44 +132,43 @@ public class Ant : MonoBehaviour
                     dot = Vector3.Dot(characterToCollider, transform.right);
                     if (dot >= Mathf.Cos(55))
                     {
-                        return col.transform.position;
+                        return col.gameObject;
                     }
 
                 }
             }
         }
-        return Vector2.zero;
+        return null;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Food")
+        if (!IsHaveFood)
         {
-            IsHaveFood = true;
-            GotTarget = false;
-            Destroy(collision.gameObject);
+            if (collision.gameObject.tag == "Food")
+            {
+                IsHaveFood = true;
+                Destroy(collision.gameObject);
+                var randomness = UnityEngine.Random.Range(-2, 2);
+                ActualTarget = transform.position + new Vector3(randomness, randomness) - transform.right * 5;
+                IsTargetFood = false;
+            }
         }
     }
 
-
-    void OnDrawGizmos()
+    private void OnDrawGizmos()
     {
-        float angle = -110.0f;
-        float rayRange = 10.0f;
-        float halfFOV = angle / 2.0f;
-        float coneDirection = 0;
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(ActualTarget, 1);
 
-        Quaternion upRayRotation = Quaternion.AngleAxis(-halfFOV + coneDirection, Vector3.forward);
-        Quaternion downRayRotation = Quaternion.AngleAxis(halfFOV + coneDirection, Vector3.forward);
+        Gizmos.color = Color.blue;
 
-        Vector3 upRayDirection = upRayRotation * transform.right * rayRange;
-        Vector3 downRayDirection = downRayRotation * transform.right * rayRange;
+        Gizmos.DrawWireSphere(transform.position + transform.right * 2, .8f);
+        Gizmos.DrawWireSphere(transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f, .8f);
+        Gizmos.DrawWireSphere(transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f, .8f);
 
-        Gizmos.DrawRay(transform.position, upRayDirection);
-        Gizmos.DrawRay(transform.position, downRayDirection);
-        Gizmos.DrawLine(transform.position + downRayDirection, transform.position + upRayDirection);
 
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(ActualTarget, 2);
+
     }
+
 }
