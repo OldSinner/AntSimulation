@@ -30,6 +30,9 @@ public class PheromoneMap : MonoBehaviour
     private void SetupParticle()
     {
         particle = GetComponent<ParticleSystem>();
+        var main = particle.main;
+        main.startSpeed = 0;
+        main.maxParticles = 100000;
         var clf = particle.colorOverLifetime;
         clf.enabled = true;
         Gradient grad = new Gradient();
@@ -41,6 +44,7 @@ public class PheromoneMap : MonoBehaviour
         particleSettings.startSize = settings.PheromoneSize;
         particleSettings.startLifetime = settings.PheromoneLifeTime;
         particleSettings.velocity = Vector3.zero;
+
     }
 
     public void AddPheromone(Vector2 location, PheromoneType type)

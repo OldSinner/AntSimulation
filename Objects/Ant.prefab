@@ -50,9 +50,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxSpeed: 7
   Speed: 20
-  WanderStrength: 40
-  HomePheromone: {fileID: 3538207931094252603, guid: dd7386132fad0174f802b452ba0310a6, type: 3}
-  FoodPheromone: {fileID: 9016794464854789211, guid: d63576ea9a0a74b418a8f3ebb5262d92, type: 3}
+  WanderStrength: 100.58
+  helper: {fileID: 0}
   ActualTarget: {x: 0, y: 0}
   GotTarget: 0
 --- !u!58 &8452159723129400984

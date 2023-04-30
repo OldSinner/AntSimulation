@@ -1,44 +1,35 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Colony : MonoBehaviour
 {
     public int NumberOfAnts;
-    public int PerSpawn;
     public GameObject Ant;
 
-    DateTime LastSpawn = DateTime.MinValue;
     void Start()
     {
-        
-        
+        if (NumberOfAnts > 0)
+        {
+            Vector2 center = transform.position;
+            for (int i = 0; i < NumberOfAnts; i++)
+            {
+                int a = i * 360 / NumberOfAnts;
+                var pos = RandomCircle(center, 1.0f, a);
+                var target = RandomCircle(center, 20f, a);
+
+                var obj = Instantiate(Ant, pos, Quaternion.identity, transform);
+                var ant = obj.GetComponent<Ant>();
+                ant.ActualTarget = target;
+                ant.GotTarget = true;
+            }
+        }
+
     }
     void Update()
     {
-        if(NumberOfAnts > 0)
-        {
-            if (DateTime.Now.AddMilliseconds(-500) > LastSpawn)
-            {
-                Vector2 center = transform.position;
-                for (int i = 0; i < PerSpawn; i++)
-                {
-                    int a = i * 360 / PerSpawn;
-                    var pos = RandomCircle(center, 1.0f, a);
-                    var target = RandomCircle(center, 20f, a);
-
-                    var obj = Instantiate(Ant, pos, Quaternion.identity);
-                    var ant = obj.GetComponent<Ant>();
-                    ant.ActualTarget = target;
-                    ant.GotTarget = true;
-                }
-                NumberOfAnts -= PerSpawn;
-            }
-        }
     }
-   
+
     Vector2 RandomCircle(Vector3 center, float radius, int a)
     {
         float ang = a;
