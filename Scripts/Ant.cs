@@ -9,8 +9,6 @@ public class Ant : MonoBehaviour
     public float Speed;
     public float WanderStrength;
 
-    public GameObject HomePheromone;
-    public GameObject FoodPheromone;
     public Helper helper;
 
     public Vector2 ActualTarget;
@@ -22,6 +20,7 @@ public class Ant : MonoBehaviour
     bool IsHaveFood;
     GameObject FoodHead;
     GameObject Food;
+     PheromoneMap map;
     DateTime LastPheromoneSpawn = DateTime.MinValue;
 
     //Const
@@ -30,6 +29,7 @@ public class Ant : MonoBehaviour
     private void Start()
     {
         FoodHead = transform.GetChild(1).gameObject;
+        map = GameObject.Find("PheromoneMap").GetComponent<PheromoneMap>();
         helper = GameObject.Find("Helper").GetComponent<Helper>();
     }
     void Update()
@@ -37,23 +37,23 @@ public class Ant : MonoBehaviour
         CheckFood();
         FindTarget();
         Move();
-        CreatePheromone();
+        SpawnPheromone();
     }
 
-    private void CreatePheromone()
+    private void SpawnPheromone()
     {
-        if (DateTime.Now.AddMilliseconds(-500) > LastPheromoneSpawn)
+        if (LastPheromoneSpawn < DateTime.Now.AddMilliseconds(-500))
         {
             if (IsHaveFood)
             {
-                Instantiate(FoodPheromone, transform.position, Quaternion.Euler(0, 0, 0));
+                map.AddPheromone(transform.position, PheromoneMap.PheromoneType.Food);
             }
             else
             {
-                Instantiate(HomePheromone, transform.position, Quaternion.Euler(0, 0, 0));
+                map.AddPheromone(transform.position, PheromoneMap.PheromoneType.Home);
+
             }
             LastPheromoneSpawn = DateTime.Now;
-            helper.PheromoneCounter++;
         }
     }
 
@@ -166,9 +166,6 @@ public class Ant : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position + transform.right * 2, .8f);
         Gizmos.DrawWireSphere(transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f, .8f);
         Gizmos.DrawWireSphere(transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f, .8f);
-
-
-
     }
 
 }

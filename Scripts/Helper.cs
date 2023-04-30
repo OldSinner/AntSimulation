@@ -6,8 +6,8 @@ using UnityEngine;
 public class Helper : MonoBehaviour
 {
     public GameObject Food;
+    public PheromoneMap map;
     // Start is called before the first frame update
-    public int PheromoneCounter = 0;
 
     DateTime LastCheck = DateTime.MinValue;
     void Start()
@@ -18,9 +18,11 @@ public class Helper : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(DateTime.Now.AddSeconds(-1) > LastCheck)
+        //CheckCellX
+        if (Input.GetMouseButtonDown(0))
         {
-            Debug.Log(PheromoneCounter);
+            Vector2 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Debug.Log(map.GetCellBaseOnPosition(worldPosition));
         }
         // Spawn Food
         //if(Input.GetMouseButtonDown(0))
