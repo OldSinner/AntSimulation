@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Ant : MonoBehaviour
@@ -7,6 +9,10 @@ public class Ant : MonoBehaviour
     public float Speed;
     public float WanderStrength;
 
+    public GameObject HomePheromone;
+    public GameObject FoodPheromone;
+
+
     //Private
     Vector2 Velocity;
     Vector2 ActualTarget;
@@ -14,6 +20,7 @@ public class Ant : MonoBehaviour
     bool IsTargetFood;
     bool IsHaveFood;
     GameObject FoodHead;
+    DateTime LastPheromoneSpawn = DateTime.MinValue;
 
     //Const
     private const int WARDEN_DISTANT_THRESHOLD = 2;
@@ -27,6 +34,23 @@ public class Ant : MonoBehaviour
         CheckFood();
         FindTarget();
         Move();
+        CreatePheromone();
+    }
+
+    private void CreatePheromone()
+    {
+        if (DateTime.Now.AddSeconds(-1) > LastPheromoneSpawn)
+        {
+            if (IsHaveFood)
+            {
+                Instantiate(FoodPheromone, transform.position, Quaternion.Euler(0, 0, 0));
+            }
+            else
+            {
+                Instantiate(HomePheromone, transform.position, Quaternion.Euler(0, 0, 0));
+            }
+            LastPheromoneSpawn = DateTime.Now;
+        }
     }
 
     void CheckFood()
@@ -66,7 +90,7 @@ public class Ant : MonoBehaviour
         if (!GotTarget)
         {
 
-            ActualTarget = ((Vector2)transform.position + Random.insideUnitCircle * WanderStrength);
+            ActualTarget = ((Vector2)transform.position + UnityEngine.Random.insideUnitCircle * WanderStrength);
             IsTargetFood = false;
             Debug.Log(ActualTarget);
             GotTarget = true;
@@ -102,13 +126,10 @@ public class Ant : MonoBehaviour
                     {
                         return col.transform.position;
                     }
-                    else
-                    {
-                    }
+
                 }
             }
         }
-
         return Vector2.zero;
     }
 
