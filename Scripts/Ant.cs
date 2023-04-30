@@ -2,13 +2,22 @@ using UnityEngine;
 
 public class Ant : MonoBehaviour
 {
+    //Props
     public float MaxSpeed;
     public float Speed;
+    public float WanderStrength;
+
+    //Private
     Vector2 Velocity;
     Vector2 ActualTarget;
     bool GotTarget;
+    bool IsTargetFood;
     bool IsHaveFood;
     GameObject FoodHead;
+
+    //Const
+    private const int WARDEN_DISTANT_THRESHOLD = 2;
+
     private void Start()
     {
         FoodHead = transform.GetChild(1).gameObject;
@@ -16,6 +25,7 @@ public class Ant : MonoBehaviour
     void Update()
     {
         CheckFood();
+        FindTarget();
         Move();
     }
 
@@ -32,16 +42,7 @@ public class Ant : MonoBehaviour
     }
     private void Move()
     {
-        if (!GotTarget)
-        {
-            var food = FindFood();
-            if (food != Vector2.zero)
-            {
-                ActualTarget = food;
-                GotTarget = true;
-            }
 
-        }
         var acc = ActualTarget - (Vector2)transform.position;
 
         acc = acc.normalized * Speed;
@@ -55,10 +56,38 @@ public class Ant : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg);
     }
 
+    private void FindTarget()
+    {
+        if (Vector2.Distance(transform.position, ActualTarget) < WARDEN_DISTANT_THRESHOLD && !IsTargetFood)
+        {
+            GotTarget = false;
+        }
+
+        if (!GotTarget)
+        {
+
+            ActualTarget = ((Vector2)transform.position + Random.insideUnitCircle * WanderStrength);
+            IsTargetFood = false;
+            Debug.Log(ActualTarget);
+            GotTarget = true;
+
+        }
+
+        if (!IsTargetFood)
+        {
+            var food = FindFood();
+            if (food != Vector2.zero)
+            {
+                ActualTarget = food;
+                IsTargetFood = true;
+            }
+        }
+    }
+
     public Vector2 FindFood()
     {
         Collider2D[] buffer = new Collider2D[10];
-        Physics2D.OverlapCircleNonAlloc(transform.position, 5, buffer);
+        Physics2D.OverlapCircleNonAlloc(transform.position, 10, buffer);
         Vector3 characterToCollider;
         float dot;
         foreach (var col in buffer)
@@ -96,9 +125,22 @@ public class Ant : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, 5);
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position, transform.right * 10);
+        float angle = -110.0f;
+        float rayRange = 10.0f;
+        float halfFOV = angle / 2.0f;
+        float coneDirection = 0;
+
+        Quaternion upRayRotation = Quaternion.AngleAxis(-halfFOV + coneDirection, Vector3.forward);
+        Quaternion downRayRotation = Quaternion.AngleAxis(halfFOV + coneDirection, Vector3.forward);
+
+        Vector3 upRayDirection = upRayRotation * transform.right * rayRange;
+        Vector3 downRayDirection = downRayRotation * transform.right * rayRange;
+
+        Gizmos.DrawRay(transform.position, upRayDirection);
+        Gizmos.DrawRay(transform.position, downRayDirection);
+        Gizmos.DrawLine(transform.position + downRayDirection, transform.position + upRayDirection);
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(ActualTarget, 2);
     }
 }
