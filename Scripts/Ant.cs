@@ -5,22 +5,45 @@ public class Ant : MonoBehaviour
     public float MaxSpeed;
     public float Speed;
     Vector2 Velocity;
+    Vector2 ActualTarget;
+    bool GotTarget;
+    bool IsHaveFood;
+    GameObject FoodHead;
     private void Start()
     {
+        FoodHead = transform.GetChild(1).gameObject;
     }
     void Update()
     {
-        HaveFood();
+        CheckFood();
         Move();
     }
 
+    void CheckFood()
+    {
+        if (IsHaveFood)
+        {
+            FoodHead.SetActive(true);
+        }
+        else
+        {
+            FoodHead.SetActive(false);
+        }
+    }
     private void Move()
     {
-        
-        var target = FindFood();
-        Debug.Log(target);
-        var acc = target - (Vector2)transform.position;
-        
+        if (!GotTarget)
+        {
+            var food = FindFood();
+            if (food != Vector2.zero)
+            {
+                ActualTarget = food;
+                GotTarget = true;
+            }
+
+        }
+        var acc = ActualTarget - (Vector2)transform.position;
+
         acc = acc.normalized * Speed;
 
         Velocity += acc * Time.deltaTime;
@@ -32,10 +55,6 @@ public class Ant : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg);
     }
 
-    void HaveFood()
-    {
-      
-    }
     public Vector2 FindFood()
     {
         Collider2D[] buffer = new Collider2D[10];
@@ -46,9 +65,8 @@ public class Ant : MonoBehaviour
         {
             if (col != null)
             {
-                if(col.CompareTag("Food"))
+                if (col.CompareTag("Food"))
                 {
-                    Debug.Log("Found Something");
                     characterToCollider = (col.transform.position - transform.position).normalized;
                     dot = Vector3.Dot(characterToCollider, transform.right);
                     if (dot >= Mathf.Cos(55))
@@ -64,6 +82,17 @@ public class Ant : MonoBehaviour
 
         return Vector2.zero;
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Food")
+        {
+            IsHaveFood = true;
+            GotTarget = false;
+            Destroy(collision.gameObject);
+        }
+    }
+
 
     void OnDrawGizmos()
     {
