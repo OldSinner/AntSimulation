@@ -46,11 +46,11 @@ public class Ant : MonoBehaviour
         {
             if (IsHaveFood)
             {
-                map.AddPheromone(transform.position, PheromoneMap.PheromoneType.Food);
+                map.AddPheromone(transform.position, PheromoneType.Food);
             }
             else
             {
-                map.AddPheromone(transform.position, PheromoneMap.PheromoneType.Home);
+                map.AddPheromone(transform.position, PheromoneType.Home);
 
             }
             LastPheromoneSpawn = DateTime.Now;
@@ -86,6 +86,8 @@ public class Ant : MonoBehaviour
 
     private void FindTarget()
     {
+        PheromonTarget();
+
         if (IsTargetFood && Food == null)
         {
             GotTarget = false;
@@ -116,6 +118,39 @@ public class Ant : MonoBehaviour
         }
     }
 
+    private void PheromonTarget()
+    {
+        var center = transform.position + transform.right * 2;
+        var left = transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f;
+        var right = transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f;
+        var typeToSearch = IsHaveFood ? PheromoneType.Home : PheromoneType.Food;
+
+        var leftPower = map.GetPheromoneInCircle(left, 1, typeToSearch);
+        var centerPower = map.GetPheromoneInCircle(center, 1, typeToSearch);
+        var rightPower = map.GetPheromoneInCircle(right, 1, typeToSearch);
+
+        if(leftPower + centerPower + rightPower == 0)
+        {
+            return;
+        }
+
+        if (leftPower > centerPower && leftPower > rightPower)
+        {
+            ActualTarget = left;
+            GotTarget = true;
+        }
+        else if (rightPower > centerPower && rightPower > leftPower)
+        {
+            ActualTarget = right;
+            GotTarget = true;
+        }
+        else
+        {
+            ActualTarget = center;
+            GotTarget = true;
+        }
+    }
+
     public GameObject? FindFood()
     {
         Collider2D[] buffer = new Collider2D[10];
@@ -143,6 +178,15 @@ public class Ant : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if(IsHaveFood)
+        {
+            if (collision.gameObject.tag == "Colony")
+            {
+                var colony = collision.gameObject.GetComponent<Colony>();
+                colony.FoodCounter++;
+                IsHaveFood = false;
+            }
+        }
         if (!IsHaveFood)
         {
             if (collision.gameObject.tag == "Food")
@@ -163,9 +207,9 @@ public class Ant : MonoBehaviour
 
         Gizmos.color = Color.blue;
 
-        Gizmos.DrawWireSphere(transform.position + transform.right * 2, .8f);
-        Gizmos.DrawWireSphere(transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f, .8f);
-        Gizmos.DrawWireSphere(transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f, .8f);
+        //Gizmos.DrawWireSphere(transform.position + transform.right * 2, 1);
+        Gizmos.DrawWireSphere(transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f, 1);
+        //Gizmos.DrawWireSphere(transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f, 1);
     }
 
 }

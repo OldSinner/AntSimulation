@@ -7,6 +7,7 @@ public class Colony : MonoBehaviour
     public int NumberOfAnts;
     public GameObject Ant;
 
+    public int FoodCounter;
     void Start()
     {
         if (NumberOfAnts > 0)

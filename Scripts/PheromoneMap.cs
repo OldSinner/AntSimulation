@@ -20,7 +20,7 @@ public class PheromoneMap : MonoBehaviour
         {
             for (int j = 0; j < settings.CELL_HEIGHT; j++)
             {
-                Cells[i, j] = new Cell();
+                Cells[i, j] = new Cell(i, j);
             }
         }
 
@@ -82,12 +82,89 @@ public class PheromoneMap : MonoBehaviour
         }
     }
 
+    public int GetPheromoneInCircle(Vector2 center, float radius, PheromoneType type)
+    {
+        var cell = GetCellBaseOnPosition(center);
+        if (cell == null) return 0;
+
+        var cells = GetNeighborsCells(cell.x, cell.y, cell);
+
+        int sum = 0;
+        foreach (var cellEntry in cells)
+        {
+            ClearEmptyPheromones(cellEntry.Pheromones);
+            foreach (var pheromone in cellEntry.Pheromones)
+            {
+                if (pheromone.Type == type)
+                {
+                    if (Vector2.Distance(pheromone.Location, center) <= radius)
+                    {
+                        var time = DateTime.Now - pheromone.CreationTime;
+                        sum += (int)(10000 - time.TotalMilliseconds) / 100;
+                    }
+                }
+            }
+        }
+
+        return sum;
+    }
+
+    private void ClearEmptyPheromones(List<Pheromone> pheromones)
+    {
+        for (int i = 0; i < pheromones.Count - 1; i++)
+        {
+            if (pheromones[i].CreationTime.AddSeconds(settings.PheromoneLifeTime) < DateTime.Now)
+            {
+                pheromones.RemoveAt(i);
+            }
+        }
+    }
+    private Cell[] GetNeighborsCells(int x, int y) => GetNeighborsCells(x, y, null);
+    private Cell[] GetNeighborsCells(int x, int y, Cell? cell)
+    {
+        List<Cell> cells = new List<Cell>();
+        if (cell != null) cells.Add(cell);
+        if (x > 0)
+        {
+            cells.Add(Cells[x - 1, y]);
+        }
+        if (x < settings.CELL_WIDTH - 1)
+        {
+            cells.Add(Cells[x + 1, y]);
+        }
+        if (y > 0)
+        {
+            cells.Add(Cells[x, y - 1]);
+        }
+        if (y < settings.CELL_HEIGHT - 1)
+        {
+            cells.Add(Cells[x, y + 1]);
+        }
+        if (x > 0 && y > 0)
+        {
+            cells.Add(Cells[x - 1, y - 1]);
+        }
+        if (x < settings.CELL_WIDTH - 1 && y < settings.CELL_HEIGHT - 1)
+        {
+            cells.Add(Cells[x + 1, y + 1]);
+        }
+        if (x > 0 && y < settings.CELL_HEIGHT - 1)
+        {
+            cells.Add(Cells[x - 1, y + 1]);
+        }
+        if (x < settings.CELL_WIDTH - 1 && y > 0)
+        {
+            cells.Add(Cells[x + 1, y - 1]);
+        }
+        return cells.ToArray();
+    }
+
     public Cell? GetCellBaseOnPosition(Vector2 position)
     {
         var x = (int)((Mathf.Abs(settings.MapStart.x) + position.x) / settings.CellLength);
         var y = (int)((Mathf.Abs(settings.MapStart.y) + position.y) / settings.CellLength);
 
-        if(x >= settings.CELL_WIDTH || y >= settings.CELL_HEIGHT || x < 0 || y < 0)
+        if (x >= settings.CELL_WIDTH || y >= settings.CELL_HEIGHT || x < 0 || y < 0)
         {
             return null;
         }
@@ -103,6 +180,13 @@ public class PheromoneMap : MonoBehaviour
     public class Cell
     {
         public List<Pheromone> Pheromones = new();
+        public int x;
+        public int y;
+        public Cell(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
     }
 
     public class Pheromone
@@ -111,10 +195,9 @@ public class PheromoneMap : MonoBehaviour
         public Vector2 Location;
         public DateTime CreationTime;
     }
-
-    public enum PheromoneType
-    {
-        Food,
-        Home
-    }
+}
+public enum PheromoneType
+{
+    Food,
+    Home
 }

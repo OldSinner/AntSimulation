@@ -19,17 +19,17 @@ public class Helper : MonoBehaviour
     void Update()
     {
         //CheckCellX
+        //if (Input.GetMouseButtonDown(0))
+        //{
+        //    Vector2 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        //    Debug.Log(map.GetPheromoneInCircle(worldPosition, 1 , PheromoneType.Home));
+        //}
+        // Spawn Food
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Debug.Log(map.GetCellBaseOnPosition(worldPosition));
+            Instantiate(Food, worldPosition, Quaternion.Euler(0, 0, 0));
         }
-        // Spawn Food
-        //if(Input.GetMouseButtonDown(0))
-        //{
-        //    Vector2 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        //    Instantiate(Food,worldPosition,Quaternion.Euler(0,0,0));
-        //}
         //Check Collission
         //if (Input.GetMouseButtonDown(0))
         //{

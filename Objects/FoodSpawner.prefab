@@ -45,5 +45,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   FoodObject: {fileID: 7948887151951006495, guid: 37eb91612fa56204d982d68f38afaab8, type: 3}
-  Radius: 0
-  NumberOfFood: 0
+  Radius: 50
+  NumberOfFood: 100
