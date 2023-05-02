@@ -9,16 +9,20 @@ public class Ant : MonoBehaviour
     public float MaxSpeed; 
     public float SteerStrength;
     public Helper helper;
+    public float TurnAroundTime;
 
     //Private
     Vector2 Velocity;
     Vector2 position;
     Vector2 desiredDirection;
+    Vector2 TurnAroundPoint;
 
     bool IsHaveFood;
+    bool IsTurnAround;
     GameObject FoodHead;
     GameObject Food;
     PheromoneMap map;
+    float StartTurndAroundTime;
     DateTime LastPheromoneSpawn = DateTime.MinValue;
 
     //Const
@@ -31,12 +35,33 @@ public class Ant : MonoBehaviour
     }
     void Update()
     {
+        Debug.Log(Time.time);
         MakeRandomTarget();
         MakeFoodTarget();
+        MakeTurnAround();
         Move();
         SpawnPheromone();
     }
 
+    private void MakeTurnAround()
+    {
+        if(IsTurnAround)
+        {
+            if ((Time.time - StartTurndAroundTime) > TurnAroundTime)
+            {
+                IsTurnAround = false;
+                return;
+            }
+            desiredDirection = (TurnAroundPoint - (Vector2)transform.position).normalized;
+        }
+    }
+
+    private void StartTurnAround()
+    {
+        IsTurnAround = true;
+        StartTurndAroundTime = Time.time;
+        TurnAroundPoint = transform.position - transform.right * 7 + transform.up * UnityEngine.Random.Range(-4,4);
+    }
 
     private void Move()
     {
@@ -145,7 +170,7 @@ public class Ant : MonoBehaviour
                 IsHaveFood = true;
                 Destroy(collision.gameObject);
                 Food = null;
-                //TODO What do after get food
+                StartTurnAround();
             }
         }
     }
@@ -165,6 +190,7 @@ public class Ant : MonoBehaviour
     {
         Gizmos.color = Color.blue;
         Gizmos.DrawRay(transform.position, desiredDirection);
+        Gizmos.DrawWireSphere(transform.position - (transform.right * 7) + transform.up * -4,1);
     }
 
 }
