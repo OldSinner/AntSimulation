@@ -5,26 +5,23 @@ using UnityEngine;
 public class Ant : MonoBehaviour
 {
     //Props
-    public float MaxSpeed;
-    public float Speed;
-    public float WanderStrength;
-
+    public float WanderStrength; 
+    public float MaxSpeed; 
+    public float SteerStrength;
     public Helper helper;
-
-    public Vector2 ActualTarget;
-    public bool GotTarget;
 
     //Private
     Vector2 Velocity;
-    bool IsTargetFood;
+    Vector2 position;
+    Vector2 desiredDirection;
+
     bool IsHaveFood;
     GameObject FoodHead;
     GameObject Food;
-     PheromoneMap map;
+    PheromoneMap map;
     DateTime LastPheromoneSpawn = DateTime.MinValue;
 
     //Const
-    private const int WARDEN_DISTANT_THRESHOLD = 2;
 
     private void Start()
     {
@@ -34,12 +31,59 @@ public class Ant : MonoBehaviour
     }
     void Update()
     {
-        CheckFood();
-        FindTarget();
+        MakeRandomTarget();
+        MakeFoodTarget();
         Move();
         SpawnPheromone();
     }
 
+
+    private void Move()
+    {
+
+        var desiredVelocity = desiredDirection * MaxSpeed;
+        var steeringForce = (desiredVelocity - Velocity) * SteerStrength;
+        var acc = Vector2.ClampMagnitude(steeringForce, SteerStrength);
+
+        Velocity = Vector2.ClampMagnitude(Velocity + acc * Time.deltaTime, MaxSpeed);
+        position += Velocity * Time.deltaTime;
+
+        float angle = Mathf.Atan2(Velocity.y, Velocity.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
+        transform.position = position;
+    }
+
+    private void MakeRandomTarget()
+    {
+        desiredDirection = (desiredDirection + UnityEngine.Random.insideUnitCircle * WanderStrength).normalized;
+    }
+    private void MakeFoodTarget()
+    {
+        if(Food == null)
+        {
+            var food = FindFood();
+            if (food != null)
+            {
+                desiredDirection = (food.transform.position - transform.position).normalized;
+            }
+        }
+        else
+        {
+            desiredDirection = (Food.transform.position - transform.position).normalized;
+        }
+    }
+
+    private void PheromonTarget()
+    {
+        var center = transform.position + transform.right * 2;
+        var left = transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f;
+        var right = transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f;
+        var typeToSearch = IsHaveFood ? PheromoneType.Home : PheromoneType.Food;
+
+        var leftPower = map.GetPheromoneInCircle(left, 1, typeToSearch);
+        var centerPower = map.GetPheromoneInCircle(center, 1, typeToSearch);
+        var rightPower = map.GetPheromoneInCircle(right, 1, typeToSearch);
+    }
     private void SpawnPheromone()
     {
         if (LastPheromoneSpawn < DateTime.Now.AddMilliseconds(-500))
@@ -57,103 +101,9 @@ public class Ant : MonoBehaviour
         }
     }
 
-    void CheckFood()
-    {
-        if (IsHaveFood)
-        {
-            FoodHead.SetActive(true);
-        }
-        else
-        {
-            FoodHead.SetActive(false);
-        }
-    }
-    private void Move()
-    {
-
-        var acc = ActualTarget - (Vector2)transform.position;
-
-        acc = acc.normalized * Speed;
-
-        Velocity += acc * Time.deltaTime;
-        Velocity = Vector2.ClampMagnitude(Velocity, MaxSpeed);
-        var angle = Mathf.Atan2(Velocity.y, Velocity.x);
-
-        var position = transform.position + ((Vector3)Velocity * Time.deltaTime);
-        transform.position = position;
-        transform.rotation = Quaternion.Euler(0, 0, angle * Mathf.Rad2Deg);
-    }
-
-    private void FindTarget()
-    {
-        PheromonTarget();
-
-        if (IsTargetFood && Food == null)
-        {
-            GotTarget = false;
-        }
-        if (Vector2.Distance(transform.position, ActualTarget) < WARDEN_DISTANT_THRESHOLD && !IsTargetFood)
-        {
-            GotTarget = false;
-        }
-
-        if (!GotTarget)
-        {
-
-            ActualTarget = ((Vector2)transform.position + UnityEngine.Random.insideUnitCircle * WanderStrength);
-            IsTargetFood = false;
-            GotTarget = true;
-
-        }
-
-        if (!IsTargetFood && !IsHaveFood)
-        {
-            var food = FindFood();
-            if (food != null)
-            {
-                ActualTarget = food.transform.position;
-                IsTargetFood = true;
-                Food = food;
-            }
-        }
-    }
-
-    private void PheromonTarget()
-    {
-        var center = transform.position + transform.right * 2;
-        var left = transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f;
-        var right = transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f;
-        var typeToSearch = IsHaveFood ? PheromoneType.Home : PheromoneType.Food;
-
-        var leftPower = map.GetPheromoneInCircle(left, 1, typeToSearch);
-        var centerPower = map.GetPheromoneInCircle(center, 1, typeToSearch);
-        var rightPower = map.GetPheromoneInCircle(right, 1, typeToSearch);
-
-        if(leftPower + centerPower + rightPower == 0)
-        {
-            return;
-        }
-
-        if (leftPower > centerPower && leftPower > rightPower)
-        {
-            ActualTarget = left;
-            GotTarget = true;
-        }
-        else if (rightPower > centerPower && rightPower > leftPower)
-        {
-            ActualTarget = right;
-            GotTarget = true;
-        }
-        else
-        {
-            ActualTarget = center;
-            GotTarget = true;
-        }
-    }
-
     public GameObject? FindFood()
     {
-        Collider2D[] buffer = new Collider2D[10];
+        Collider2D[] buffer = new Collider2D[20];
         Physics2D.OverlapCircleNonAlloc(transform.position, 10, buffer);
         Vector3 characterToCollider;
         float dot;
@@ -167,6 +117,7 @@ public class Ant : MonoBehaviour
                     dot = Vector3.Dot(characterToCollider, transform.right);
                     if (dot >= Mathf.Cos(55))
                     {
+                        Food = col.gameObject;
                         return col.gameObject;
                     }
 
@@ -193,23 +144,27 @@ public class Ant : MonoBehaviour
             {
                 IsHaveFood = true;
                 Destroy(collision.gameObject);
-                var randomness = UnityEngine.Random.Range(-2, 2);
-                ActualTarget = transform.position + new Vector3(randomness, randomness) - transform.right * 5;
-                IsTargetFood = false;
+                Food = null;
+                //TODO What do after get food
             }
+        }
+    }
+    void CheckFood()
+    {
+        if (IsHaveFood)
+        {
+            FoodHead.SetActive(true);
+        }
+        else
+        {
+            FoodHead.SetActive(false);
         }
     }
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(ActualTarget, 1);
-
         Gizmos.color = Color.blue;
-
-        //Gizmos.DrawWireSphere(transform.position + transform.right * 2, 1);
-        Gizmos.DrawWireSphere(transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f, 1);
-        //Gizmos.DrawWireSphere(transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f, 1);
+        Gizmos.DrawRay(transform.position, desiredDirection);
     }
 
 }

@@ -21,8 +21,6 @@ public class Colony : MonoBehaviour
 
                 var obj = Instantiate(Ant, pos, Quaternion.identity, transform);
                 var ant = obj.GetComponent<Ant>();
-                ant.ActualTarget = target;
-                ant.GotTarget = true;
             }
         }
 
