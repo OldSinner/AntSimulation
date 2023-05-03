@@ -1,7 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class PheromoneMap : MonoBehaviour
@@ -54,7 +52,7 @@ public class PheromoneMap : MonoBehaviour
 
         cell.Pheromones.Add(new Pheromone
         {
-            CreationTime = DateTime.Now,
+            CreationTime = Time.time,
             Location = location,
             Type = type
         });
@@ -82,14 +80,14 @@ public class PheromoneMap : MonoBehaviour
         }
     }
 
-    public int GetPheromoneInCircle(Vector2 center, float radius, PheromoneType type)
+    public float GetPheromoneInCircle(Vector2 center, float radius, PheromoneType type)
     {
         var cell = GetCellBaseOnPosition(center);
         if (cell == null) return 0;
 
         var cells = GetNeighborsCells(cell.x, cell.y, cell);
 
-        int sum = 0;
+        float sum = 0;
         foreach (var cellEntry in cells)
         {
             ClearEmptyPheromones(cellEntry.Pheromones);
@@ -99,8 +97,7 @@ public class PheromoneMap : MonoBehaviour
                 {
                     if (Vector2.Distance(pheromone.Location, center) <= radius)
                     {
-                        var time = DateTime.Now - pheromone.CreationTime;
-                        sum += (int)(10000 - time.TotalMilliseconds) / 100;
+                        sum += (float)settings.PheromoneLifeTime / (Time.time - pheromone.CreationTime);
                     }
                 }
             }
@@ -113,7 +110,7 @@ public class PheromoneMap : MonoBehaviour
     {
         for (int i = 0; i < pheromones.Count - 1; i++)
         {
-            if (pheromones[i].CreationTime.AddSeconds(settings.PheromoneLifeTime) < DateTime.Now)
+            if (Time.time - pheromones[i].CreationTime > settings.PheromoneLifeTime)
             {
                 pheromones.RemoveAt(i);
             }
@@ -193,7 +190,7 @@ public class PheromoneMap : MonoBehaviour
     {
         public PheromoneType Type;
         public Vector2 Location;
-        public DateTime CreationTime;
+        public float CreationTime;
     }
 }
 public enum PheromoneType

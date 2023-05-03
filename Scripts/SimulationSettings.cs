@@ -15,4 +15,11 @@ public class SimulationSettings : MonoBehaviour
     public Color FoodPheromoneColor;
     public Color HomePheromoneColor;
     public float PheromoneSize;
+
+    [Header("Pheromone")]
+    public float AntSensorRange;
+    public float AntWanderStrength;
+    public float AntMaxSpeed;
+    public float AntSteerStrength;
+    public float AntTurnAroundTime;
 }

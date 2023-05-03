@@ -4,12 +4,10 @@ using UnityEngine;
 
 public class Ant : MonoBehaviour
 {
+    private SimulationSettings settings;
+
     //Props
-    public float WanderStrength; 
-    public float MaxSpeed; 
-    public float SteerStrength;
     public Helper helper;
-    public float TurnAroundTime;
 
     //Private
     Vector2 Velocity;
@@ -17,37 +15,78 @@ public class Ant : MonoBehaviour
     Vector2 desiredDirection;
     Vector2 TurnAroundPoint;
 
+
     bool IsHaveFood;
     bool IsTurnAround;
     GameObject FoodHead;
     GameObject Food;
     PheromoneMap map;
     float StartTurndAroundTime;
-    DateTime LastPheromoneSpawn = DateTime.MinValue;
+    float LastPheromoneSpawn;
 
     //Const
 
     private void Start()
     {
+        settings = GameObject.Find("SimulationSettings").GetComponent<SimulationSettings>();
         FoodHead = transform.GetChild(1).gameObject;
         map = GameObject.Find("PheromoneMap").GetComponent<PheromoneMap>();
         helper = GameObject.Find("Helper").GetComponent<Helper>();
     }
     void Update()
     {
-        Debug.Log(Time.time);
         MakeRandomTarget();
+        MakePheromoneMovemnt();
         MakeFoodTarget();
         MakeTurnAround();
         Move();
         SpawnPheromone();
+        CheckFood();
+    }
+
+    private void MakePheromoneMovemnt()
+    {
+        PheromoneType searchType = PheromoneType.Food;
+        if(IsHaveFood)
+        {
+            searchType = PheromoneType.Home;
+        }
+
+        var leftPoint = transform.position + (transform.right * 1.5f) + transform.up;
+        var rightPoint = transform.position + (transform.right * 1.5f) - transform.up;
+        var centerPoint = transform.position + (transform.right * 2);
+
+        var leftPheromone = map.GetPheromoneInCircle(leftPoint,settings.AntSensorRange, searchType);
+        var rightPheromone = map.GetPheromoneInCircle(rightPoint, settings.AntSensorRange, searchType);
+        var centerPheromone = map.GetPheromoneInCircle(centerPoint, settings.AntSensorRange, searchType);
+
+        if(centerPheromone > leftPheromone && centerPheromone > rightPheromone)
+        {
+            desiredDirection = centerPoint-transform.position;
+            Debug.Log("Going straight");
+        }
+        else if(leftPheromone > rightPheromone)
+        {
+            desiredDirection = leftPoint - transform.position;
+            Debug.Log("Turning left");
+        }
+        else if (rightPheromone > leftPheromone)
+        {
+            desiredDirection = rightPoint - transform.position;
+            Debug.Log("Turning Right");
+
+        }
+        if (centerPheromone == 0 && leftPheromone == 0 && rightPheromone == 0)
+        {
+            Debug.Log("No Pheromone");
+        }
     }
 
     private void MakeTurnAround()
     {
         if(IsTurnAround)
         {
-            if ((Time.time - StartTurndAroundTime) > TurnAroundTime)
+            if ((Time.time - StartTurndAroundTime) > settings.AntTurnAroundTime)
             {
                 IsTurnAround = false;
                 return;
@@ -66,11 +105,11 @@ public class Ant : MonoBehaviour
     private void Move()
     {
 
-        var desiredVelocity = desiredDirection * MaxSpeed;
-        var steeringForce = (desiredVelocity - Velocity) * SteerStrength;
-        var acc = Vector2.ClampMagnitude(steeringForce, SteerStrength);
+        var desiredVelocity = desiredDirection * settings.AntMaxSpeed;
+        var steeringForce = (desiredVelocity - Velocity) * settings.AntSteerStrength;
+        var acc = Vector2.ClampMagnitude(steeringForce, settings.AntSteerStrength);
 
-        Velocity = Vector2.ClampMagnitude(Velocity + acc * Time.deltaTime, MaxSpeed);
+        Velocity = Vector2.ClampMagnitude(Velocity + acc * Time.deltaTime, settings.AntMaxSpeed);
         position += Velocity * Time.deltaTime;
 
         float angle = Mathf.Atan2(Velocity.y, Velocity.x) * Mathf.Rad2Deg;
@@ -80,38 +119,30 @@ public class Ant : MonoBehaviour
 
     private void MakeRandomTarget()
     {
-        desiredDirection = (desiredDirection + UnityEngine.Random.insideUnitCircle * WanderStrength).normalized;
+        desiredDirection = (desiredDirection + UnityEngine.Random.insideUnitCircle * settings.AntWanderStrength).normalized;
     }
     private void MakeFoodTarget()
     {
-        if(Food == null)
+        if (!IsHaveFood)
         {
-            var food = FindFood();
-            if (food != null)
+            if (Food == null)
             {
-                desiredDirection = (food.transform.position - transform.position).normalized;
+                var food = FindFood();
+                if (food != null)
+                {
+                    desiredDirection = (food.transform.position - transform.position).normalized;
+                }
+            }
+            else
+            {
+                desiredDirection = (Food.transform.position - transform.position).normalized;
             }
         }
-        else
-        {
-            desiredDirection = (Food.transform.position - transform.position).normalized;
-        }
     }
 
-    private void PheromonTarget()
-    {
-        var center = transform.position + transform.right * 2;
-        var left = transform.position + transform.right * 2 + transform.up * 2 - transform.right * 0.5f;
-        var right = transform.position + transform.right * 2 - transform.up * 2 - transform.right * 0.5f;
-        var typeToSearch = IsHaveFood ? PheromoneType.Home : PheromoneType.Food;
-
-        var leftPower = map.GetPheromoneInCircle(left, 1, typeToSearch);
-        var centerPower = map.GetPheromoneInCircle(center, 1, typeToSearch);
-        var rightPower = map.GetPheromoneInCircle(right, 1, typeToSearch);
-    }
     private void SpawnPheromone()
     {
-        if (LastPheromoneSpawn < DateTime.Now.AddMilliseconds(-500))
+        if (Time.time - LastPheromoneSpawn > .5)
         {
             if (IsHaveFood)
             {
@@ -122,34 +153,34 @@ public class Ant : MonoBehaviour
                 map.AddPheromone(transform.position, PheromoneType.Home);
 
             }
-            LastPheromoneSpawn = DateTime.Now;
+            LastPheromoneSpawn = Time.time;
         }
     }
 
     public GameObject? FindFood()
     {
-        Collider2D[] buffer = new Collider2D[20];
-        Physics2D.OverlapCircleNonAlloc(transform.position, 10, buffer);
-        Vector3 characterToCollider;
-        float dot;
-        foreach (var col in buffer)
-        {
-            if (col != null)
+            Collider2D[] buffer = new Collider2D[20];
+            Physics2D.OverlapCircleNonAlloc(transform.position, 10, buffer);
+            Vector3 characterToCollider;
+            float dot;
+            foreach (var col in buffer)
             {
-                if (col.CompareTag("Food"))
+                if (col != null)
                 {
-                    characterToCollider = (col.transform.position - transform.position).normalized;
-                    dot = Vector3.Dot(characterToCollider, transform.right);
-                    if (dot >= Mathf.Cos(55))
+                    if (col.CompareTag("Food"))
                     {
-                        Food = col.gameObject;
-                        return col.gameObject;
-                    }
+                        characterToCollider = (col.transform.position - transform.position).normalized;
+                        dot = Vector3.Dot(characterToCollider, transform.right);
+                        if (dot >= Mathf.Cos(55))
+                        {
+                            Food = col.gameObject;
+                            return col.gameObject;
+                        }
 
+                    }
                 }
             }
-        }
-        return null;
+            return null;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -161,6 +192,7 @@ public class Ant : MonoBehaviour
                 var colony = collision.gameObject.GetComponent<Colony>();
                 colony.FoodCounter++;
                 IsHaveFood = false;
+                StartTurnAround();
             }
         }
         if (!IsHaveFood)
@@ -190,7 +222,10 @@ public class Ant : MonoBehaviour
     {
         Gizmos.color = Color.blue;
         Gizmos.DrawRay(transform.position, desiredDirection);
-        Gizmos.DrawWireSphere(transform.position - (transform.right * 7) + transform.up * -4,1);
+        Gizmos.DrawWireSphere(transform.position + (transform.right * 3) , 2);
+        Gizmos.DrawWireSphere(transform.position + (transform.right * 2f) + transform.up * 2, 2f); // left
+        Gizmos.DrawWireSphere(transform.position + (transform.right * 2f) - transform.up * 2, 2f); // right
+
     }
 
 }
